@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lanka Fixed Calendar (April Start)</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+   <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Animations */
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Highlights */
+        .today-pulse {
+            animation: today-glow 2s infinite;
+            z-index: 10;
+            background-color: #10b981 !important; /* emerald-500 */
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        @keyframes today-glow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .digital-font { font-family: 'Space Mono', monospace; }
+
+        /* Staggered animation delays for grid */
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.1s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.2s; }
+        .delay-5 { animation-delay: 0.25s; }
+        .delay-6 { animation-delay: 0.3s; }
+        .delay-7 { animation-delay: 0.35s; }
+        .delay-8 { animation-delay: 0.4s; }
+        .delay-9 { animation-delay: 0.45s; }
+        .delay-10 { animation-delay: 0.5s; }
+        .delay-11 { animation-delay: 0.55s; }
+        .delay-12 { animation-delay: 0.6s; }
+        .delay-13 { animation-delay: 0.65s; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12 relative overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="bg-white/80 shadow-sm sticky top-0 z-40 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+            
+            <!-- Logo area -->
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-transform hover:scale-105 duration-300">
+                    <i class="fa-solid fa-calendar-check text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600 leading-tight">
+                        Fixed Calendar
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-bold tracking-wide uppercase">April Cycle System</p>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <div id="header-cycle-display" class="text-xs font-bold text-slate-800">2025 - 2026 Cycle</div>
+                    <div id="header-timezone-display" class="text-[10px] text-slate-400 font-medium">Asia/Colombo</div>
+                </div>
+
+                <button id="settings-toggle" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-emerald-600 p-2.5 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-2 group">
+                    <i class="fa-solid fa-gear group-hover:rotate-90 transition-transform duration-500"></i>
+                    <span class="text-xs font-bold hidden sm:inline">Settings</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings Panel (Hidden by default) -->
+    <div id="settings-panel" class="fixed top-20 right-4 sm:right-6 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 transform translate-x-[120%] transition-transform duration-300 p-6 hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-slate-800 text-lg">Configuration</h3>
+            <button id="close-settings" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Year Cycle -->
+        <div class="mb-5">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Fiscal/Cultural Cycle</label>
+            <div class="relative">
+                <i class="fa-solid fa-rotate absolute left-3 top-3 text-slate-400 text-xs"></i>
+                <select id="cycle-select" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block pl-9 p-2.5 font-medium">
+                    <option value="2024">Cycle 2024 - 2025</option>
+                    <option value="2025" selected>Cycle 2025 - 2026 (Current)</option>
+                    <option value="2026">Cycle 2026 - 2027</option>
+                    <option value="2027">Cycle 2027 - 2028</option>
+                    <option value="2028">Cycle 2028 - 2029</option>
+                </select>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1 ml-1">Starts April 1st of the selected year.</p>
+        </div>
+
+        <!-- Timezone -->
+        <div class="mb-5">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Your Location</label>
+            <div class="relative">
+                <i class="fa-solid fa-globe absolute left-3 top-3 text-slate-400 text-xs"></i>
+                <select id="timezone-select" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block pl-9 p-2.5 font-medium">
+                    <option value="Asia/Colombo" selected>🇱🇰 Colombo (GMT+5:30)</option>
+                    <option value="UTC">🌍 UTC (GMT+0)</option>
+                    <option value="Europe/London">🇬🇧 London (GMT+0/+1)</option>
+                    <option value="America/New_York">🇺🇸 New York (EST/EDT)</option>
+                    <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+                    <option value="Australia/Sydney">🇦🇺 Sydney (AEST)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 my-4"></div>
+
+        <!-- Date Finder -->
+        <div>
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Find Gregorian Date</label>
+            <input type="date" id="date-finder" class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5">
+            <button id="find-date-btn" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 rounded-lg transition-colors">
+                Locate in Fixed Calendar
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay for settings -->
+    <div id="settings-overlay" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 hidden transition-opacity opacity-0"></div>
+
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Live Dashboard -->
+        <div class="mb-10 bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl shadow-emerald-900/20 relative overflow-hidden fade-in-up">
+            <!-- Decorative blobs -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500 rounded-full blur-[100px] opacity-20 -mr-20 -mt-20 pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-teal-600 rounded-full blur-[80px] opacity-20 -ml-20 -mb-20 pointer-events-none"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                
+                <!-- Time Block -->
+                <div class="text-center md:text-left w-full md:w-auto border-b md:border-b-0 md:border-r border-slate-700/50 pb-6 md:pb-0 md:pr-10">
+                    <div class="flex items-center justify-center md:justify-start gap-2 text-emerald-400 mb-2">
+                        <i class="fa-regular fa-clock animate-pulse"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest">Live Clock</span>
+                    </div>
+                    <div id="live-time" class="text-5xl sm:text-6xl font-bold digital-font text-white tracking-tight">00:00</div>
+                    <div id="live-gregorian-date" class="text-slate-400 font-medium mt-2 text-sm sm:text-base">Connecting...</div>
+                </div>
+
+                <!-- Conversion Block -->
+                <div class="flex-1 w-full md:w-auto">
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur-sm">
+                        <div class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-between">
+                            <span>Current Position in Cycle</span>
+                            <span id="cycle-year-label" class="text-emerald-400">2025-2026</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center divide-x divide-white/10">
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Month</div>
+                                <div id="live-fixed-month" class="text-lg sm:text-xl md:text-2xl font-bold text-white truncate px-1">---</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Date</div>
+                                <div id="live-fixed-day" class="text-lg sm:text-xl md:text-2xl font-bold text-white">---</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Weekday</div>
+                                <div id="live-fixed-weekday" class="text-lg sm:text-xl md:text-2xl font-bold text-amber-400">---</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Injected by JS -->
+        </div>
+
+        <!-- Year Day Footer -->
+        <div id="year-day-container" class="mt-8 fade-in-up delay-13">
+            <!-- Injected by JS -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-6 py-8 text-center border-t border-slate-200 mt-12">
+        <p class="text-slate-400 text-sm">
+            <i class="fa-solid fa-code-branch mr-1"></i> 13-Month International Fixed Calendar (April Start)
+        </p>
+    </footer>
+
+    <script>
+        // --- CONFIGURATION ---
+        const months = ["April", "May", "June", "Sol", "July", "August", "September", "October", "November", "December", "January", "February", "March"];
+        const dayAbbr = ["S", "M", "T", "W", "T", "F", "S"];
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        // Month 0 in this system corresponds to Gregorian Month 3 (April)
+        const START_MONTH_GREGORIAN_INDEX = 3; 
+
+        // --- STATE ---
+        let state = {
+            activeCycleYear: 2025, // The year the cycle STARTS (April 1st, 2025)
+            timeZone: "Asia/Colombo",
+            todayHighlightId: null
+        };
+
+        // --- HELPERS ---
+
+        // Get the Gregorian date for April 1st of the active cycle year
+        function getCycleStartDate(cycleYear) {
+            return new Date(Date.UTC(cycleYear, START_MONTH_GREGORIAN_INDEX, 1));
+        }
+
+        // Calculate how many days have passed since the start of the cycle
+        function getDayOfCycle(date, cycleYear) {
+            // We use noon to avoid DST issues when calculating day difference
+            const cycleStart = new Date(Date.UTC(cycleYear, START_MONTH_GREGORIAN_INDEX, 1, 12, 0, 0));
+            const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+            
+            const diffTime = target - cycleStart;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Day 1 is April 1st. diffDays will be 0 for April 1st, so we add 1.
+            return diffDays + 1;
+        }
+
+        // Convert Gregorian Date to Fixed Date
+        function toFixedCalendar(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth(); // 0-11
+            
+            // Determine which cycle year this date belongs to.
+            // If date is before April 1st, it belongs to the previous year's cycle.
+            // Example: March 2026 belongs to Cycle 2025 (which started April 2025).
+            let cycleYear = (month >= START_MONTH_GREGORIAN_INDEX) ? year : year - 1;
+            
+            const doc = getDayOfCycle(date, cycleYear);
+            
+            // Calculate total days in this cycle (is the NEXT year a leap year? impacts Feb 29 which is end of cycle)
+            // Cycle 2025 ends March 31 2026.
+            // Cycle 2027 ends March 31 2028 (Leap year Feb 29 is included).
+            // Logic: Calculate distance to Next April 1st.
+            const nextCycleStart = new Date(Date.UTC(cycleYear + 1, START_MONTH_GREGORIAN_INDEX, 1));
+            const currentCycleStart = new Date(Date.UTC(cycleYear, START_MONTH_GREGORIAN_INDEX, 1));
+            const daysInCycle = Math.round((nextCycleStart - currentCycleStart) / (1000 * 60 * 60 * 24));
+            
+            // If it's the very last day, it's Year Day
+            if (doc === daysInCycle) {
+                return { 
+                    cycleYear, 
+                    monthIndex: 12, 
+                    day: 29, 
+                    monthName: "Cycle End", 
+                    isYearDay: true,
+                    gregorianDate: date
+                };
+            }
+
+            // Normal calculation
+            if (doc < 1) {
+                // Should not happen if logic is correct for "belongs to cycle"
+                return null; 
+            }
+
+            const monthIndex = Math.floor((doc - 1) / 28);
+            const dayOfMonth = ((doc - 1) % 28) + 1;
+            
+            // Safety clamp
+            const safeMonthIndex = Math.min(monthIndex, 12);
+
+            return {
+                cycleYear,
+                monthIndex: safeMonthIndex,
+                monthName: months[safeMonthIndex],
+                day: dayOfMonth,
+                weekday: dayNames[(dayOfMonth - 1) % 7],
+                gregorianDate: date
+            };
+        }
+
+        // --- UI FUNCTIONS ---
+
+        function toggleSettings(show) {
+            const panel = document.getElementById('settings-panel');
+            const overlay = document.getElementById('settings-overlay');
+            
+            if (show) {
+                panel.classList.remove('hidden');
+                overlay.classList.remove('hidden');
+                // Trigger reflow for animation
+                void panel.offsetWidth; 
+                panel.classList.remove('translate-x-[120%]');
+                overlay.classList.remove('opacity-0');
+            } else {
+                panel.classList.add('translate-x-[120%]');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    panel.classList.add('hidden');
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            document.getElementById('cycle-year-label').innerText = `${state.activeCycleYear} - ${state.activeCycleYear + 1}`;
+            document.getElementById('header-cycle-display').innerText = `${state.activeCycleYear} - ${state.activeCycleYear + 1} Cycle`;
+
+            // Render 13 Months
+            for (let m = 0; m < 13; m++) {
+                const monthCard = document.createElement('div');
+                // Add staggered animation class
+                monthCard.className = `calendar-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden fade-in-up delay-${m+1}`;
+                
+                let headerClass = m === 3 ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white" : "border-b border-slate-100 text-slate-800 bg-slate-50/50";
+                let monthLabel = m === 3 ? "SOL (Summer Month)" : `Month ${m+1}`;
+                
+                monthCard.innerHTML = `
+                    <div class="p-3 ${headerClass} flex justify-between items-center">
+                        <h3 class="font-bold text-lg tracking-tight">${months[m]}</h3>
+                        <span class="text-[10px] font-bold uppercase opacity-70 bg-black/10 px-2 py-0.5 rounded">${monthLabel}</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-7 mb-2 border-b border-slate-100 pb-2">
+                            ${dayAbbr.map((d, i) => `<div class="text-center text-[10px] font-bold ${i === 0 ? 'text-rose-500' : 'text-slate-400'}">${d}</div>`).join('')}
+                        </div>
+                        <div class="grid grid-cols-7 gap-1" id="month-${m}-days"></div>
+                    </div>
+                `;
+
+                grid.appendChild(monthCard);
+                const dayGrid = document.getElementById(`month-${m}-days`);
+
+                for (let d = 1; d <= 28; d++) {
+                    const dayCell = document.createElement('div');
+                    // ID format: cycle-2025-m0-d1
+                    dayCell.id = `cycle-${state.activeCycleYear}-m${m}-d${d}`;
+                    dayCell.className = "day-cell h-8 flex items-center justify-center text-xs rounded-lg transition-all cursor-default border border-transparent hover:border-emerald-200 hover:bg-emerald-50";
+                    
+                    let textClass = d % 7 === 1 ? "text-rose-500 font-bold" : "text-slate-600 font-medium";
+                    dayCell.innerHTML = `<span class="${textClass}">${d}</span>`;
+                    
+                    dayGrid.appendChild(dayCell);
+                }
+            }
+
+            // Render Year Day (End of Cycle)
+            const nextYear = state.activeCycleYear + 1;
+            const isLeapEnd = (nextYear % 4 === 0 && nextYear % 100 !== 0) || (nextYear % 400 === 0);
+            
+            const ydContainer = document.getElementById('year-day-container');
+            ydContainer.innerHTML = `
+                <div class="bg-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between border border-slate-700 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-900/20 to-transparent pointer-events-none"></div>
+                    <div class="flex items-center gap-4 relative z-10">
+                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/30">
+                            <i class="fa-solid fa-flag-checkered"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Year Day Holiday</h3>
+                            <p class="text-slate-400 text-xs">The final day of the cycle. Dedicated to unity.</p>
+                        </div>
+                    </div>
+                    <div class="text-right mt-4 sm:mt-0 relative z-10">
+                        <div class="text-2xl font-bold text-white">March 31, ${nextYear}</div>
+                        <div class="text-xs text-emerald-400 font-bold uppercase tracking-wider">End of Cycle</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateClock() {
+            // Get current time in selected timezone
+            const now = new Date();
+            
+            // Format Time
+            const timeStr = new Intl.DateTimeFormat('en-US', { 
+                timeZone: state.timeZone, 
+                hour12: false, 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            }).format(now);
+
+            // Format Date
+            const dateStr = new Intl.DateTimeFormat('en-US', { 
+                timeZone: state.timeZone, 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            }).format(now);
+
+            document.getElementById('live-time').innerText = timeStr;
+            document.getElementById('live-gregorian-date').innerText = dateStr;
+
+            // Get date parts to construct a Date object for calculation
+            const parts = new Intl.DateTimeFormat('en-US', { 
+                timeZone: state.timeZone, 
+                year: 'numeric', month: 'numeric', day: 'numeric',
+                hour12: false 
+            }).formatToParts(now);
+            
+            const p = {}; 
+            parts.forEach(part => p[part.type] = part.value);
+            
+            // Construct date relative to UTC to act as "local" for math
+            const targetDate = new Date(Date.UTC(p.year, p.month - 1, p.day));
+
+            // Convert to Fixed
+            const fixed = toFixedCalendar(targetDate);
+            
+            // Update Dashboard
+            document.getElementById('live-fixed-month').innerText = fixed.monthName;
+            document.getElementById('live-fixed-day').innerText = fixed.isYearDay ? "End" : fixed.day;
+            document.getElementById('live-fixed-weekday').innerText = fixed.isYearDay ? "Holiday" : fixed.weekday;
+            
+            // Highlight Logic
+            // 1. Remove old highlight
+            if (state.todayHighlightId) {
+                const old = document.getElementById(state.todayHighlightId);
+                if (old) old.classList.remove('today-pulse');
+            }
+
+            // 2. Check if the calculated fixed date belongs to the currently displayed cycle
+            if (fixed.cycleYear === state.activeCycleYear) {
+                if (!fixed.isYearDay) {
+                    const newId = `cycle-${fixed.cycleYear}-m${fixed.monthIndex}-d${fixed.day}`;
+                    const el = document.getElementById(newId);
+                    if (el) {
+                        el.classList.add('today-pulse');
+                        state.todayHighlightId = newId;
+                    }
+                }
+            } else {
+                // If today is in a different cycle than displayed, show a notification or just no highlight
+                // (Currently just no highlight)
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+
+        document.getElementById('settings-toggle').addEventListener('click', () => toggleSettings(true));
+        document.getElementById('close-settings').addEventListener('click', () => toggleSettings(false));
+        document.getElementById('settings-overlay').addEventListener('click', () => toggleSettings(false));
+
+        document.getElementById('cycle-select').addEventListener('change', (e) => {
+            state.activeCycleYear = parseInt(e.target.value);
+            renderCalendar();
+            updateClock(); // Re-check highlight
+        });
+
+        document.getElementById('timezone-select').addEventListener('change', (e) => {
+            state.timeZone = e.target.value;
+            document.getElementById('header-timezone-display').innerText = e.target.options[e.target.selectedIndex].text;
+            updateClock();
+        });
+
+        // Date Finder Logic
+        document.getElementById('find-date-btn').addEventListener('click', () => {
+            const inputVal = document.getElementById('date-finder').value;
+            if (!inputVal) return;
+
+            const date = new Date(inputVal);
+            const fixed = toFixedCalendar(date);
+            
+            // 1. Switch cycle if needed
+            if (fixed.cycleYear !== state.activeCycleYear) {
+                state.activeCycleYear = fixed.cycleYear;
+                document.getElementById('cycle-select').value = fixed.cycleYear;
+                renderCalendar();
+            }
+
+            // 2. Close settings
+            toggleSettings(false);
+
+            // 3. Highlight and Scroll
+            setTimeout(() => {
+                let targetId;
+                if (fixed.isYearDay) {
+                    targetId = 'year-day-container';
+                } else {
+                    targetId = `cycle-${fixed.cycleYear}-m${fixed.monthIndex}-d${fixed.day}`;
+                }
+
+                const el = document.getElementById(targetId);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Flash effect
+                    el.classList.add('ring-4', 'ring-emerald-400', 'ring-opacity-50');
+                    setTimeout(() => el.classList.remove('ring-4', 'ring-emerald-400', 'ring-opacity-50'), 2000);
+                }
+            }, 300);
+        });
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial state based on real date
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            
+            // Set default cycle to current one
+            // If it's Jan 2026, we are in Cycle 2025. 
+            // If it's May 2026, we are in Cycle 2026.
+            const initialCycle = (currentMonth >= START_MONTH_GREGORIAN_INDEX) ? currentYear : currentYear - 1;
+            
+            state.activeCycleYear = initialCycle;
+            
+            // Update Select UI
+            const cycleSelect = document.getElementById('cycle-select');
+            if (cycleSelect.querySelector(`option[value="${initialCycle}"]`)) {
+                cycleSelect.value = initialCycle;
+            }
+
+            renderCalendar();
+            updateClock();
+            setInterval(updateClock, 1000);
+        });
+
+    </script>
+</body>
+</html>
