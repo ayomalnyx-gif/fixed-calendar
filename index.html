@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- iOS / PWA Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Fixed Cal">
@@ -13,7 +11,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">
 
-    <title>Sri Lanka Fixed Calendar</title>
+    <title>Fixed Calendar - Jan Start</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -23,16 +21,13 @@
             font-family: 'Outfit', sans-serif; 
             background-color: #f8fafc; 
             -webkit-tap-highlight-color: transparent; 
-            overscroll-behavior-y: none; /* Prevents bounce effect on mobile */
         }
         
         .no-select { user-select: none; -webkit-user-select: none; }
         
-        /* Animations */
         .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; transform: translateY(15px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
-        /* Pulse Effects */
         .today-pulse { 
             animation: today-glow 2s infinite; 
             z-index: 10; 
@@ -46,45 +41,34 @@
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } 
         }
 
-        .holiday-pulse { animation: pulse-glow 2s infinite; }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
-            70% { box-shadow: 0 0 0 4px rgba(234, 179, 8, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
-        }
-
         .digital-font { font-family: 'Space Mono', monospace; }
         
-        /* Staggered Animations */
-        .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.1s; } .delay-3 { animation-delay: 0.15s; }
-        .delay-4 { animation-delay: 0.2s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.3s; }
-        .delay-7 { animation-delay: 0.35s; } .delay-8 { animation-delay: 0.4s; } .delay-9 { animation-delay: 0.45s; }
-        .delay-10 { animation-delay: 0.5s; } .delay-11 { animation-delay: 0.55s; } .delay-12 { animation-delay: 0.6s; }
-        .delay-13 { animation-delay: 0.65s; }
+        .has-reminder::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 4px;
+            height: 4px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+        }
 
-        /* Tooltip Logic for Touch */
-        .day-cell { position: relative; }
-        .day-cell:active .tooltip, .day-cell:hover .tooltip { 
-            visibility: visible; opacity: 1; 
-        }
-        .tooltip {
-            visibility: hidden; opacity: 0; transition: opacity 0.2s;
-            pointer-events: none;
-        }
+        /* Modal styling */
+        .modal-enter { animation: modalIn 0.3s ease-out forwards; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative overflow-x-hidden no-select">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-20 relative no-select">
 
-    <!-- Header -->
     <header class="bg-white/90 shadow-sm sticky top-0 z-40 backdrop-blur-md border-b border-slate-200 pt-safe-top">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-2 rounded-xl shadow-md">
-                    <i class="fa-solid fa-calendar-check text-lg"></i>
+                <div class="bg-gradient-to-br from-blue-500 to-emerald-600 text-white p-2 rounded-xl shadow-md">
+                    <i class="fa-solid fa-calendar-days text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600 leading-tight">Fixed Cal</h1>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase">Personal Edition</p>
+                    <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 leading-tight">Fixed Cal</h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase">Jan-Dec Cycle</p>
                 </div>
             </div>
             <button id="settings-toggle" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 p-2 rounded-xl active:scale-95 transition-transform">
@@ -93,7 +77,63 @@
         </div>
     </header>
 
-    <!-- Settings Panel -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        
+        <!-- Dashboard -->
+        <div class="mb-8 bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden fade-in-up">
+            <div class="relative z-10 flex flex-col gap-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Current Date</div>
+                        <div id="live-gregorian-date" class="text-emerald-400 text-lg font-bold">Connecting...</div>
+                        <div id="live-time" class="text-2xl font-bold digital-font text-white opacity-80">00:00</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Fixed System</div>
+                        <div class="flex items-baseline justify-end gap-1">
+                            <span id="live-fixed-month" class="text-xl font-bold">---</span>
+                            <span id="live-fixed-day" class="text-xl font-bold text-emerald-400">---</span>
+                        </div>
+                        <div id="live-fixed-weekday" class="text-xs text-amber-400 font-bold mt-1">---</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap gap-3 mb-6 px-1">
+            <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-md border border-slate-100 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span class="text-[10px] font-bold text-slate-600">Reminder</span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-md border border-slate-100 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span class="text-[10px] font-bold text-slate-600">Poya</span>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        
+        <!-- Year Day (365th) -->
+        <div id="year-day-container" class="mt-8"></div>
+    </main>
+
+    <!-- Reminder Modal -->
+    <div id="reminder-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="modal-overlay"></div>
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 relative z-10 modal-enter shadow-2xl">
+            <h3 id="modal-date-title" class="font-bold text-slate-800 text-lg mb-1">Add Reminder</h3>
+            <p id="modal-date-subtitle" class="text-xs text-slate-500 mb-4 font-medium italic"></p>
+            <textarea id="reminder-text" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none mb-4" rows="3" placeholder="What's happening?"></textarea>
+            <div class="flex gap-2">
+                <button id="save-reminder" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Save</button>
+                <button id="delete-reminder" class="px-4 bg-rose-50 text-rose-500 rounded-xl hidden"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
     <div id="settings-panel" class="fixed top-20 right-4 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 transform translate-x-[120%] transition-transform duration-300 p-6 hidden">
         <div class="flex justify-between items-center mb-6">
             <h3 class="font-bold text-slate-800">Settings</h3>
@@ -102,323 +142,207 @@
         <div class="mb-5">
             <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Cycle Year</label>
             <select id="cycle-select" class="w-full bg-slate-50 border p-2 rounded-lg text-sm font-medium">
-                <option value="2024">2024 - 2025</option>
-                <option value="2025" selected>2025 - 2026</option>
-                <option value="2026">2026 - 2027</option>
+                <option value="2025" selected>2025</option>
+                <option value="2026">2026</option>
             </select>
         </div>
-        <div>
-            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Timezone</label>
-            <select id="timezone-select" class="w-full bg-slate-50 border p-2 rounded-lg text-sm font-medium">
-                <option value="Asia/Colombo" selected>🇱🇰 Colombo</option>
-                <option value="UTC">🌍 UTC</option>
-            </select>
-        </div>
+        <button id="clear-data" class="w-full text-xs text-rose-500 font-bold border border-rose-100 py-2 rounded-lg bg-rose-50 mt-4">Clear All Reminders</button>
     </div>
-    <div id="settings-overlay" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 hidden"></div>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-6">
-        
-        <!-- Live Dashboard -->
-        <div class="mb-8 bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden fade-in-up">
-            <div class="relative z-10 flex justify-between items-end">
-                <div>
-                    <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Current Time</div>
-                    <div id="live-time" class="text-4xl font-bold digital-font text-white mb-1">00:00</div>
-                    <div id="live-gregorian-date" class="text-emerald-400 text-xs font-medium">Connecting...</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Fixed Date</div>
-                    <div class="flex items-baseline justify-end gap-1">
-                        <span id="live-fixed-month" class="text-xl font-bold">---</span>
-                        <span id="live-fixed-day" class="text-xl font-bold text-emerald-400">---</span>
-                    </div>
-                    <div id="live-fixed-weekday" class="text-xs text-amber-400 font-bold mt-1">---</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="flex flex-wrap gap-3 mb-6 px-1">
-            <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-md border border-slate-100 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                <span class="text-[10px] font-bold text-slate-600">Poya</span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-md border border-slate-100 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span class="text-[10px] font-bold text-slate-600">Public</span>
-            </div>
-        </div>
-
-        <!-- Calendar Grid -->
-        <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- JS Injection -->
-        </div>
-
-        <!-- Year Day -->
-        <div id="year-day-container" class="mt-8 fade-in-up delay-13"></div>
-
-    </main>
 
     <script>
-        // --- 1. PWA Registration ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('SW Registered'))
-                    .catch(err => console.log('SW Failed', err));
-            });
-        }
-
-        // --- 2. Data & Config ---
-        const months = ["April", "May", "June", "Sol", "July", "August", "September", "October", "November", "December", "January", "February", "March"];
-        const dayAbbr = ["S", "M", "T", "W", "T", "F", "S"];
+        const months = ["January", "February", "March", "April", "May", "June", "Sol", "July", "August", "September", "October", "November", "December"];
         const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const START_MONTH_GREGORIAN_INDEX = 3; // April
+        const dayAbbr = ["S", "M", "T", "W", "T", "F", "S"];
+        const START_MONTH_GREGORIAN_INDEX = 0; // JANUARY START
 
-        // Sri Lankan Holidays (Gregorian)
-        const gregorianHolidays = {
-            "2026-01-03": { name: "Duruthu Full Moon Poya", type: "poya" },
-            "2026-01-14": { name: "Tamil Thai Pongal Day", type: "public" },
-            "2026-02-01": { name: "Navam Full Moon Poya", type: "poya" },
-            "2026-02-04": { name: "Independence Day", type: "public" },
-            "2026-02-16": { name: "Mahasivarathri Day", type: "public" },
-            "2026-03-03": { name: "Madin Full Moon Poya", type: "poya" },
-            "2026-04-02": { name: "Bak Full Moon Poya", type: "poya" },
-            "2026-04-03": { name: "Good Friday", type: "merc" },
-            "2026-04-13": { name: "Day prior to Sinhala & Tamil New Year", type: "public" },
-            "2026-04-14": { name: "Sinhala & Tamil New Year", type: "public" },
-            "2026-05-01": { name: "May Day / Vesak Full Moon Poya", type: "poya" },
-            "2026-05-02": { name: "Day following Vesak Poya", type: "public" },
-            "2026-05-31": { name: "Poson Full Moon Poya", type: "poya" },
-            "2026-12-25": { name: "Christmas Day", type: "public" }
+        let state = {
+            activeCycleYear: new Date().getFullYear(),
+            timeZone: "Asia/Colombo",
+            reminders: JSON.parse(localStorage.getItem('fixed-cal-reminders') || '{}'),
+            selectedDayKey: null
         };
 
-        let state = { activeCycleYear: 2025, timeZone: "Asia/Colombo", todayHighlightId: null };
-
-        // --- 3. Calculation Logic ---
-
+        // --- CALCULATION LOGIC ---
         function getCycleStartDate(cycleYear) {
-            return new Date(Date.UTC(cycleYear, START_MONTH_GREGORIAN_INDEX, 1, 12, 0, 0));
-        }
-
-        function getDayOfCycle(date, cycleYear) {
-            const cycleStart = getCycleStartDate(cycleYear);
-            const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
-            const diffTime = target - cycleStart;
-            return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return new Date(Date.UTC(cycleYear, 0, 1, 12, 0, 0));
         }
 
         function toFixedCalendar(date) {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            let cycleYear = (month >= START_MONTH_GREGORIAN_INDEX) ? year : year - 1;
-            const doc = getDayOfCycle(date, cycleYear);
+            const cycleYear = date.getFullYear();
+            const start = getCycleStartDate(cycleYear);
+            const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+            const diffDays = Math.floor((target - start) / (1000 * 60 * 60 * 24)) + 1;
             
-            // Calculate cycle length (handling Leap Year at end of cycle)
-            const nextCycleStart = new Date(Date.UTC(cycleYear + 1, START_MONTH_GREGORIAN_INDEX, 1));
-            const currentCycleStart = new Date(Date.UTC(cycleYear, START_MONTH_GREGORIAN_INDEX, 1));
-            const daysInCycle = Math.round((nextCycleStart - currentCycleStart) / (1000 * 60 * 60 * 24));
+            const nextCycleStart = new Date(Date.UTC(cycleYear + 1, 0, 1));
+            const daysInYear = Math.round((nextCycleStart - start) / (1000 * 60 * 60 * 24));
             
-            if (doc === daysInCycle) {
-                return { cycleYear, monthIndex: 12, day: 29, monthName: "Cycle End", isYearDay: true };
-            }
+            if (diffDays === daysInYear) return { cycleYear, monthIndex: 12, day: 29, monthName: "Year Day", isYearDay: true };
+            if (diffDays < 1) return null;
 
-            if (doc < 1) return null; // Previous cycle
-
-            const monthIndex = Math.floor((doc - 1) / 28);
-            const dayOfMonth = ((doc - 1) % 28) + 1;
+            const monthIndex = Math.floor((diffDays - 1) / 28);
+            const dayOfMonth = ((diffDays - 1) % 28) + 1;
             const safeMonthIndex = Math.min(monthIndex, 12);
 
-            return {
-                cycleYear,
-                monthIndex: safeMonthIndex,
-                monthName: months[safeMonthIndex],
-                day: dayOfMonth,
-                weekday: dayNames[(dayOfMonth - 1) % 7]
+            return { 
+                cycleYear, 
+                monthIndex: safeMonthIndex, 
+                monthName: months[safeMonthIndex], 
+                day: dayOfMonth, 
+                weekday: dayNames[(dayOfMonth - 1) % 7] 
             };
         }
 
-        // --- 4. Render Logic ---
+        function getGregDate(cycleYear, monthIdx, day) {
+            const start = getCycleStartDate(cycleYear);
+            const target = new Date(start);
+            target.setDate(start.getDate() + (monthIdx * 28) + (day - 1));
+            return target;
+        }
 
+        // --- UI RENDER ---
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
             
-            // Map Holidays
-            const holidayMap = {}; 
-            for (const [dateStr, holiday] of Object.entries(gregorianHolidays)) {
-                const hDate = new Date(dateStr);
-                const fixedH = toFixedCalendar(hDate);
-                if (fixedH && fixedH.cycleYear === state.activeCycleYear) {
-                    const key = `m${fixedH.monthIndex}-d${fixedH.day}`;
-                    holidayMap[key] = holiday;
-                }
-            }
+            let currentMonthId = null;
+            const todayFixed = toFixedCalendar(new Date());
 
-            // Render 13 Months
             for (let m = 0; m < 13; m++) {
-                const monthCard = document.createElement('div');
-                monthCard.className = `calendar-card bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden fade-in-up delay-${m+1}`;
-                
-                let headerClass = m === 3 ? "bg-emerald-600 text-white" : "border-b border-slate-100 bg-slate-50/50 text-slate-800";
-                
-                // Days Header (S M T W T F S)
-                let weekHeaderHtml = `<div class="grid grid-cols-7 mb-2 border-b border-slate-100 pb-2">`;
-                dayAbbr.forEach((d, i) => {
-                    weekHeaderHtml += `<div class="text-center text-[10px] font-bold ${i === 0 ? 'text-rose-500' : 'text-slate-400'}">${d}</div>`;
-                });
-                weekHeaderHtml += `</div>`;
+                const startG = getGregDate(state.activeCycleYear, m, 1);
+                const endG = getGregDate(state.activeCycleYear, m, 28);
+                const rangeStr = `${startG.toLocaleDateString('en-US', {month:'short', day:'numeric'})} - ${endG.toLocaleDateString('en-US', {month:'short', day:'numeric'})}`;
 
-                monthCard.innerHTML = `
-                    <div class="p-3 ${headerClass} flex justify-between items-center">
-                        <h3 class="font-bold text-sm tracking-tight">${months[m]}</h3>
-                        <span class="text-[9px] font-bold uppercase opacity-70">M${m+1}</span>
+                const card = document.createElement('div');
+                card.id = `month-card-${m}`;
+                card.className = `bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden fade-in-up`;
+                
+                if (todayFixed && todayFixed.monthIndex === m && todayFixed.cycleYear === state.activeCycleYear) {
+                    currentMonthId = card.id;
+                }
+
+                card.innerHTML = `
+                    <div class="p-4 ${m === 6 ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-800'} border-b flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-sm">${months[m]}</h3>
+                            <div class="text-[9px] opacity-70 font-mono">${rangeStr}</div>
+                        </div>
+                        <span class="text-[9px] font-bold opacity-60 bg-black/5 px-2 py-0.5 rounded">M${m+1}</span>
                     </div>
                     <div class="p-3">
-                        ${weekHeaderHtml}
-                        <div class="grid grid-cols-7 gap-1" id="month-${m}-days"></div>
+                        <div class="grid grid-cols-7 mb-2 border-b pb-2">
+                            ${dayAbbr.map((d, i) => `<div class="text-center text-[10px] font-bold ${i === 0 ? 'text-rose-500' : 'text-slate-400'}">${d}</div>`).join('')}
+                        </div>
+                        <div class="grid grid-cols-7 gap-1">
+                            ${Array.from({length: 28}, (_, i) => {
+                                const d = i + 1;
+                                const key = `y${state.activeCycleYear}-m${m}-d${d}`;
+                                const hasRem = state.reminders[key] ? 'has-reminder' : '';
+                                const isSun = d % 7 === 1 ? 'text-rose-500 font-bold' : 'text-slate-600';
+                                return `<div onclick="openReminder('${key}', ${m}, ${d})" class="day-cell relative h-9 flex items-center justify-center text-xs rounded-lg cursor-pointer hover:bg-slate-50 active:scale-90 transition-all ${hasRem}" id="${key}">
+                                    <span class="${isSun}">${d}</span>
+                                </div>`;
+                            }).join('')}
+                        </div>
                     </div>
                 `;
-
-                grid.appendChild(monthCard);
-                const dayGrid = document.getElementById(`month-${m}-days`);
-
-                for (let d = 1; d <= 28; d++) {
-                    const dayCell = document.createElement('div');
-                    const cellId = `cycle-${state.activeCycleYear}-m${m}-d${d}`;
-                    dayCell.id = cellId;
-                    
-                    const holiday = holidayMap[`m${m}-d${d}`];
-                    let bgClass = "bg-transparent";
-                    let textClass = d % 7 === 1 ? "text-rose-500 font-bold" : "text-slate-600";
-                    let extraHtml = "";
-
-                    if (holiday) {
-                        if (holiday.type === 'poya') {
-                            bgClass = "bg-amber-100 border border-amber-200";
-                            textClass = "text-amber-800 font-bold";
-                            extraHtml = `<div class="absolute inset-0 rounded-lg holiday-pulse"></div>`;
-                        } else if (holiday.type === 'public') {
-                            bgClass = "bg-rose-100 border border-rose-200";
-                            textClass = "text-rose-700 font-bold";
-                        }
-                        
-                        // Tooltip
-                        extraHtml += `
-                            <div class="tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded z-20 whitespace-nowrap shadow-lg">
-                                ${holiday.name}
-                            </div>
-                        `;
-                    }
-
-                    dayCell.className = `day-cell relative h-8 flex items-center justify-center text-xs rounded-lg cursor-default ${bgClass}`;
-                    dayCell.innerHTML = `<span class="${textClass} relative z-10">${d}</span>${extraHtml}`;
-                    
-                    dayGrid.appendChild(dayCell);
-                }
+                grid.appendChild(card);
             }
 
             // Render Year Day
-            const ydContainer = document.getElementById('year-day-container');
-            ydContainer.innerHTML = `
-                <div class="bg-slate-900 rounded-xl p-4 text-white shadow-lg flex items-center justify-between border border-slate-700">
+            const yd = document.getElementById('year-day-container');
+            const ydKey = `y${state.activeCycleYear}-m12-d29`;
+            yd.innerHTML = `
+                <div onclick="openReminder('${ydKey}', 12, 29)" class="bg-slate-900 rounded-2xl p-4 text-white shadow-lg flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400 font-bold">
-                            <i class="fa-solid fa-flag-checkered"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-sm">Year Day</h3>
-                            <p class="text-slate-400 text-[10px]">End of Cycle Holiday</p>
-                        </div>
+                        <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400"><i class="fa-solid fa-star"></i></div>
+                        <div><h3 class="font-bold text-sm">Year Day (365th)</h3><p class="text-[10px] text-slate-400">Tap to add special reminder</p></div>
                     </div>
-                </div>
-            `;
-        }
+                    ${state.reminders[ydKey] ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+                </div>`;
 
-        // --- 5. Clock & Update ---
-
-        function updateClock() {
-            const now = new Date();
-            
-            // Time
-            const timeStr = new Intl.DateTimeFormat('en-US', { 
-                timeZone: state.timeZone, hour12: false, hour: '2-digit', minute: '2-digit' 
-            }).format(now);
-            
-            // Date
-            const dateStr = new Intl.DateTimeFormat('en-US', { 
-                timeZone: state.timeZone, dateStyle: 'medium' 
-            }).format(now);
-
-            document.getElementById('live-time').innerText = timeStr;
-            document.getElementById('live-gregorian-date').innerText = dateStr;
-
-            // Fixed Conversion
-            const parts = new Intl.DateTimeFormat('en-US', { 
-                timeZone: state.timeZone, year: 'numeric', month: 'numeric', day: 'numeric', hour12: false 
-            }).formatToParts(now);
-            const p = {}; parts.forEach(part => p[part.type] = part.value);
-            const targetDate = new Date(Date.UTC(p.year, p.month - 1, p.day));
-
-            const fixed = toFixedCalendar(targetDate);
-            
-            if (fixed) {
-                document.getElementById('live-fixed-month').innerText = fixed.monthName;
-                document.getElementById('live-fixed-day').innerText = fixed.isYearDay ? "End" : fixed.day;
-                document.getElementById('live-fixed-weekday').innerText = fixed.isYearDay ? "Holiday" : fixed.weekday;
-                
-                // Highlight
-                if (state.todayHighlightId) {
-                    document.getElementById(state.todayHighlightId)?.classList.remove('today-pulse');
-                }
-                
-                if (fixed.cycleYear === state.activeCycleYear && !fixed.isYearDay) {
-                    const newId = `cycle-${fixed.cycleYear}-m${fixed.monthIndex}-d${fixed.day}`;
-                    const el = document.getElementById(newId);
-                    if (el) {
-                        el.classList.add('today-pulse');
-                        state.todayHighlightId = newId;
-                    }
-                }
+            // Auto-scroll to current month
+            if (currentMonthId) {
+                setTimeout(() => {
+                    const el = document.getElementById(currentMonthId);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
             }
         }
 
-        // --- 6. Event Listeners ---
-        document.getElementById('settings-toggle').addEventListener('click', () => {
-            document.getElementById('settings-panel').classList.remove('hidden', 'translate-x-[120%]');
-            document.getElementById('settings-overlay').classList.remove('hidden');
-        });
-        document.getElementById('close-settings').addEventListener('click', () => {
+        // --- REMINDER SYSTEM ---
+        window.openReminder = (key, m, d) => {
+            state.selectedDayKey = key;
+            const greg = getGregDate(state.activeCycleYear, m, d);
+            document.getElementById('modal-date-title').innerText = `${months[m]} ${d}`;
+            document.getElementById('modal-date-subtitle').innerText = greg.toLocaleDateString('en-US', { dateStyle: 'full' });
+            document.getElementById('reminder-text').value = state.reminders[key] || '';
+            document.getElementById('reminder-modal').classList.remove('hidden');
+            document.getElementById('delete-reminder').classList.toggle('hidden', !state.reminders[key]);
+        };
+
+        document.getElementById('save-reminder').onclick = () => {
+            const txt = document.getElementById('reminder-text').value.trim();
+            if (txt) state.reminders[state.selectedDayKey] = txt;
+            else delete state.reminders[state.selectedDayKey];
+            localStorage.setItem('fixed-cal-reminders', JSON.stringify(state.reminders));
+            renderCalendar();
+            closeModal();
+        };
+
+        document.getElementById('delete-reminder').onclick = () => {
+            delete state.reminders[state.selectedDayKey];
+            localStorage.setItem('fixed-cal-reminders', JSON.stringify(state.reminders));
+            renderCalendar();
+            closeModal();
+        };
+
+        function closeModal() { document.getElementById('reminder-modal').classList.add('hidden'); }
+        document.getElementById('modal-overlay').onclick = closeModal;
+
+        // --- UPDATES ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-time').innerText = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            document.getElementById('live-gregorian-date').innerText = now.toLocaleDateString('en-US', { dateStyle: 'medium' });
+
+            const fixed = toFixedCalendar(now);
+            if (fixed) {
+                document.getElementById('live-fixed-month').innerText = fixed.monthName;
+                document.getElementById('live-fixed-day').innerText = fixed.isYearDay ? "Year Day" : fixed.day;
+                document.getElementById('live-fixed-weekday').innerText = fixed.isYearDay ? "Holiday" : fixed.weekday;
+                
+                const todayKey = `y${fixed.cycleYear}-m${fixed.monthIndex}-d${fixed.day}`;
+                document.querySelectorAll('.today-pulse').forEach(el => el.classList.remove('today-pulse'));
+                document.getElementById(todayKey)?.classList.add('today-pulse');
+            }
+        }
+
+        // --- SETTINGS ---
+        document.getElementById('settings-toggle').onclick = () => {
+            document.getElementById('settings-panel').classList.remove('hidden');
+            setTimeout(() => document.getElementById('settings-panel').classList.remove('translate-x-[120%]'), 10);
+        };
+        document.getElementById('close-settings').onclick = () => {
             document.getElementById('settings-panel').classList.add('translate-x-[120%]');
-            setTimeout(() => { 
-                document.getElementById('settings-panel').classList.add('hidden'); 
-                document.getElementById('settings-overlay').classList.add('hidden'); 
-            }, 300);
-        });
-        document.getElementById('cycle-select').addEventListener('change', (e) => {
+            setTimeout(() => document.getElementById('settings-panel').classList.add('hidden'), 300);
+        };
+        document.getElementById('clear-data').onclick = () => {
+            if (confirm('Clear all reminders?')) {
+                state.reminders = {};
+                localStorage.clear();
+                renderCalendar();
+            }
+        };
+        document.getElementById('cycle-select').onchange = (e) => {
             state.activeCycleYear = parseInt(e.target.value);
             renderCalendar();
             updateClock();
-        });
-        document.getElementById('timezone-select').addEventListener('change', (e) => {
-            state.timeZone = e.target.value;
-            updateClock();
-        });
+        };
 
-        // Init
-        // Auto-detect cycle
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        state.activeCycleYear = (currentMonth >= START_MONTH_GREGORIAN_INDEX) ? currentYear : currentYear - 1;
-        document.getElementById('cycle-select').value = state.activeCycleYear;
-
+        // Initialize
         renderCalendar();
         updateClock();
         setInterval(updateClock, 1000);
-
     </script>
 </body>
 </html>
